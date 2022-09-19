@@ -7,10 +7,23 @@ CREATE TABLE Ren(
     KlanNamn varchar(255) not null,
     Underart varchar(255) not null,
     Namn varchar(255),
-    Stank varchar(255),
+    Stank int,
     Region varchar(255),
+    TillhörSpann int not null,
 
     primary key (Nr)
+
+)ENGINE=INNODB;
+
+
+CREATE TABLE Priser(
+    RenNr int unique not null,
+    -- YYYY-MM-DD
+    år DATE,
+    titel varchar(255) not null,
+
+    primary key (RenNr),
+    FOREIGN KEY (RenNr) REFERENCES Ren(Nr)
 
 )ENGINE=INNODB;
 
@@ -33,7 +46,6 @@ CREATE TABLE PensioneradRen(
 
     primary key (RenNr),
     foreign key (RenNr) REFERENCES Ren(Nr)
-
 
 )ENGINE=INNODB;
 
@@ -81,5 +93,57 @@ CREATE TABLE ExpressSläde(
     primary key(SlädeNr),
     foreign key (SlädeNr) REFERENCES Släde(Nr)
 )ENGINE=INNODB;
+
+
+DELIMITER $$
+CREATE TRIGGER tr_invokeInsert_renDupe
+BEFORE INSERT ON TjänstRen
+FOR EACH ROW 
+    BEGIN
+        if TjänstRen.RenNr = PensioneradRen.RenNr then
+        SIGNAL sqlstate '45000'
+        SET MESSAGE_TEXT = "Renen är pensionerad";
+        END IF;
+    END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER tr_invokeUpdate_renDupe
+BEFORE UPDATE ON TjänstRen
+FOR EACH ROW 
+    BEGIN
+        if TjänstRen.RenNr = PensioneradRen.RenNr then
+        SIGNAL sqlstate '45000'
+        SET MESSAGE_TEXT = "Renen är pensionerad";
+        END IF;
+    END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER tr_invokeInsert_renDupe2
+BEFORE INSERT ON PensioneradRen
+FOR EACH ROW 
+    BEGIN
+        if PensioneradRen.RenNr = TjänstRen.RenNr then
+        SIGNAL sqlstate '45000'
+        SET MESSAGE_TEXT = "Renen är i tjänst";
+        END IF;
+    END$$
+DELIMITER ;
+
+
+DELIMITER $$
+CREATE TRIGGER tr_invokeUpdate_renDupe2
+BEFORE INSERT ON PensioneradRen
+FOR EACH ROW 
+    BEGIN
+        if PensioneradRen.RenNr = TjänstRen.RenNr then
+        SIGNAL sqlstate '45000'
+        SET MESSAGE_TEXT = "Renen är i tjänst";
+        END IF;
+    END$$
+DELIMITER ;
+
+
 
 
