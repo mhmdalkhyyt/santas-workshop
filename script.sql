@@ -99,7 +99,7 @@ CREATE TABLE ExpressSläde(
 -- END OF TABLES --
 
 
--- START OF TRIGGERS --
+-- START OF TRIGGERS restricting jobs --
 
 DELIMITER $$
 CREATE TRIGGER tr_invokeInsert_renDupe
@@ -151,4 +151,26 @@ FOR EACH ROW
 DELIMITER ;
 
 
+-- START OF TRIGGER FOR SlädeNamn --
+DELIMITER $$
+CREATE TRIGGER tr_invokeError_slädeNamn
+BEFORE INSERT ON Släde
+FOR EACH ROW
+    BEGIN
+        if (new.SlädeNamn = "Brynolf") OR (new.SlädeNamn = "Rudolf") then
+        SIGNAL sqlstate = '46000'
+        SET MESSAGE_TEXT = "Släde får inte heta Brynolf eller Rudolf!"
+        END IF;
+    END$$
+DELIMITER ;
+
+
+
 -- END OF TRIGGERS --
+
+
+-- START OF Procedures --
+
+
+-- START OF PROCEDURE for Transfering Ren to PensioneradRen --
+
