@@ -2,6 +2,8 @@ DROP DATABASE IF EXISTS a20muhal;
 CREATE DATABASE a20muhal;
 USE a20muhal;
 
+-- START OF TABLES --
+
 CREATE TABLE Ren(
     Nr int  unique not null,
     KlanNamn varchar(255) not null,
@@ -94,13 +96,17 @@ CREATE TABLE ExpressSläde(
     foreign key (SlädeNr) REFERENCES Släde(Nr)
 )ENGINE=INNODB;
 
+-- END OF TABLES --
+
+
+-- START OF TRIGGERS --
 
 DELIMITER $$
 CREATE TRIGGER tr_invokeInsert_renDupe
 BEFORE INSERT ON TjänstRen
 FOR EACH ROW 
     BEGIN
-        if TjänstRen.RenNr = PensioneradRen.RenNr then
+        if new.TjänstRen.RenNr = new.PensioneradRen.RenNr then
         SIGNAL sqlstate '45000'
         SET MESSAGE_TEXT = "Renen är pensionerad";
         END IF;
@@ -112,7 +118,7 @@ CREATE TRIGGER tr_invokeUpdate_renDupe
 BEFORE UPDATE ON TjänstRen
 FOR EACH ROW 
     BEGIN
-        if TjänstRen.RenNr = PensioneradRen.RenNr then
+        if new.TjänstRen.RenNr = new.PensioneradRen.RenNr then
         SIGNAL sqlstate '45000'
         SET MESSAGE_TEXT = "Renen är pensionerad";
         END IF;
@@ -124,7 +130,7 @@ CREATE TRIGGER tr_invokeInsert_renDupe2
 BEFORE INSERT ON PensioneradRen
 FOR EACH ROW 
     BEGIN
-        if PensioneradRen.RenNr = TjänstRen.RenNr then
+        if new.PensioneradRen.RenNr = new.TjänstRen.RenNr then
         SIGNAL sqlstate '45000'
         SET MESSAGE_TEXT = "Renen är i tjänst";
         END IF;
@@ -137,7 +143,7 @@ CREATE TRIGGER tr_invokeUpdate_renDupe2
 BEFORE INSERT ON PensioneradRen
 FOR EACH ROW 
     BEGIN
-        if PensioneradRen.RenNr = TjänstRen.RenNr then
+        if new.PensioneradRen.RenNr = new.TjänstRen.RenNr then
         SIGNAL sqlstate '45000'
         SET MESSAGE_TEXT = "Renen är i tjänst";
         END IF;
@@ -145,5 +151,4 @@ FOR EACH ROW
 DELIMITER ;
 
 
-
-
+-- END OF TRIGGERS --
