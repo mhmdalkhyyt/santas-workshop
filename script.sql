@@ -110,7 +110,7 @@ CREATE TRIGGER tr_invokeInsert_reindeerDupe
 BEFORE INSERT ON WorkReindeer
 FOR EACH ROW 
     BEGIN
-        IF ((SELECT PensionedReindeer.ReindeerNr FROM PensionedReindeer) = NEW.ReindeerNr) then
+        IF ((SELECT PensionedReindeer.ReindeerNr FROM PensionedReindeer) = NEW.ReindeerNr) THEN
             SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is pensionized';
         END IF;
     END$$
@@ -121,8 +121,8 @@ CREATE TRIGGER tr_invokeUpdate_reindeerDupe
 BEFORE UPDATE ON WorkReindeer
 FOR EACH ROW 
     BEGIN
-        IF ((SELECT PensionedReindeer.ReindeerNr FROM PensionedReindeer) = NEW.ReindeerNr) then
-        SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is pensionized';
+        IF ((SELECT PensionedReindeer.ReindeerNr FROM PensionedReindeer) = NEW.ReindeerNr) THEN
+            SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is pensionized';
         END IF;
     END$$
 DELIMITER ;
@@ -132,7 +132,7 @@ CREATE TRIGGER tr_invokeInsert_reindeerDupe2
 BEFORE INSERT ON PensionedReindeer
 FOR EACH ROW 
     BEGIN
-        IF ((SELECT WorkReindeer.ReindeerNr FROM WorkReindeer) = NEW.ReindeerNr) then
+        IF ((SELECT WorkReindeer.ReindeerNr FROM WorkReindeer) = NEW.ReindeerNr) THEN
             SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is Working';
         END IF;
     END$$
@@ -144,8 +144,8 @@ CREATE TRIGGER tr_invokeUpdate_reindeerDupe2
 BEFORE INSERT ON PensionedReindeer
 FOR EACH ROW 
     BEGIN
-        if ((SELECT WorkReindeer.ReindeerNr FROM WorkReindeer) = NEW.ReindeerNr) then
-        SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is a working reindeer';
+        if ((SELECT WorkReindeer.ReindeerNr FROM WorkReindeer) = NEW.ReindeerNr) THEN
+            SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is a working reindeer';
         END IF;
     END$$
 DELIMITER ;
@@ -157,9 +157,8 @@ CREATE TRIGGER tr_invokeError_sleighName
 BEFORE INSERT ON Sleigh
 FOR EACH ROW
     BEGIN
-        if (new.Sleigh.Name = "Brynolf") OR (new.Sleigh.Name = "Rudolf") then
-        SIGNAL sqlstate '46000'
-        SET MESSAGE_TEXT = "Sleigh name cannot be Brynolf or Rudolf!";
+        if (new.Sleigh.Name = "Brynolf") OR (new.Sleigh.Name = "Rudolf") THEN
+            SIGNAL sqlstate '46000' SET MESSAGE_TEXT = 'Sleigh name cannot be Brynolf or Rudolf!';
         END IF;
     END$$
 DELIMITER ;
