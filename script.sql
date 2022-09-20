@@ -1,100 +1,104 @@
+-- Active: 1663679019364@@127.0.0.1@3306@a20muhal
 DROP DATABASE IF EXISTS a20muhal;
 CREATE DATABASE a20muhal;
 USE a20muhal;
 
 -- START OF TABLES --
 
-CREATE TABLE Ren(
+CREATE TABLE Reindeer(
     Nr int  unique not null,
-    KlanNamn varchar(255) not null,
-    Underart varchar(255) not null,
-    Namn varchar(255),
-    Stank int,
+    ClanName varchar(255),
+    Subspecies varchar(255) not null,
+    Name varchar(255),
+    Stink varchar(255),
     Region varchar(255),
-    TillhörSpann int not null,
+    GroupBellonging int not null,
 
     primary key (Nr)
 
 )ENGINE=INNODB;
 
 
-CREATE TABLE Priser(
-    RenNr int unique not null,
-    -- YYYY-MM-DD
-    år DATE,
-    titel varchar(255) not null,
+CREATE TABLE Trophy(
+    ReindeerNr int unique not null,
+    -- YYYY-MM-DD --
+    year DATE,
+    title varchar(255) not null,
 
-    primary key (RenNr),
-    FOREIGN KEY (RenNr) REFERENCES Ren(Nr)
+    primary key (ReindeerNr),
+    FOREIGN KEY (ReindeerNr) REFERENCES Reindeer(Nr)
 
 )ENGINE=INNODB;
 
-CREATE TABLE TjänstRen(
-    RenNr int,
-    Lön float,
+CREATE TABLE WorkReindeer(
+    ReindeerNr int,
+    Salary float,
     
 
-    primary key(RenNr),
-    foreign key(RenNr) REFERENCES Ren(Nr)
+    primary key(ReindeerNr),
+    foreign key(ReindeerNr) REFERENCES Reindeer(Nr)
 
 )ENGINE=INNODB;
 
 
-CREATE TABLE PensioneradRen(
-    RenNr int,
+CREATE TABLE PensionedReindeer(
+    ReindeerNr int,
     PölsaburkNr int,
-    Fabriknamn varchar(255),
-    Smak varchar(255),
+    FactoryName varchar(255),
+    Taste varchar(255),
 
-    primary key (RenNr),
-    foreign key (RenNr) REFERENCES Ren(Nr)
-
-)ENGINE=INNODB;
-
-
-CREATE TABLE Spann(
-    Namn varchar(255) unique not null,
-    Kapacitet int,
-    Antal int,
-    Andel float,
-
-    primary key(Namn)
+    primary key (ReindeerNr),
+    foreign key (ReindeerNr) REFERENCES Reindeer(Nr)
 
 )ENGINE=INNODB;
 
 
-CREATE TABLE Släde(
+CREATE TABLE GroupOfReindeers(
+    Name varchar(255) unique not null,
+    Capacity int,
+    Quantity int not null,
+    Share float,
+
+    primary key(Name)
+
+)ENGINE=INNODB;
+
+
+CREATE TABLE Sleigh(
     Nr int unique not null,
-    Namn varchar(255),
-    Tillvärkare varchar(255),
-    Steglängd int,
+    Name varchar(255),
+    Manifactor varchar(255),
+    StepLenght int,
 
-    Kapacitet int,
+    Capacity int,
 
     primary key (Nr)
 
 )Engine=INNODB;
 
 
-CREATE TABLE LastSläde(
-    SlädeNr int unique not null,
-    Extrakapacitet int,
-    Klimattyp varchar(255),
+CREATE TABLE LoadSleigh(
+    SleighNr int unique not null,
+    ExtraCapacity int,
+    ClimateType varchar(255),
 
-    primary key(SlädeNr),
-    foreign key(SlädeNr) REFERENCES Släde(Nr)
+    primary key(SleighNr),
+    foreign key(SleighNr) REFERENCES Sleigh(Nr)
 
 )ENGINE=INNODB;
 
 
-CREATE TABLE ExpressSläde(
-    SlädeNr int unique not null,
-    Raketantal int,
-    Bromsverkan int,
+CREATE TABLE ExpressSleigh(
+    SleighNr int unique not null,
+    RocketQuantity int,
+    BreakEfficiency int,
 
-    primary key(SlädeNr),
-    foreign key (SlädeNr) REFERENCES Släde(Nr)
+    primary key(SleighNr),
+    foreign key (SleighNr) REFERENCES Sleigh(Nr)
 )ENGINE=INNODB;
+
+
+CREATE TABLE 
 
 -- END OF TABLES --
 
@@ -102,50 +106,46 @@ CREATE TABLE ExpressSläde(
 -- START OF TRIGGERS restricting jobs --
 
 DELIMITER $$
-CREATE TRIGGER tr_invokeInsert_renDupe
-BEFORE INSERT ON TjänstRen
+CREATE TRIGGER tr_invokeInsert_reindeerDupe
+BEFORE INSERT ON WorkReindeer
 FOR EACH ROW 
     BEGIN
-        if new.TjänstRen.RenNr = new.PensioneradRen.RenNr then
-        SIGNAL sqlstate '45000'
-        SET MESSAGE_TEXT = "Renen är pensionerad";
+        IF ((SELECT PensionedReindeer.ReindeerNr FROM PensionedReindeer) = NEW.ReindeerNr) then
+            SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is pensionized';
         END IF;
     END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE TRIGGER tr_invokeUpdate_renDupe
-BEFORE UPDATE ON TjänstRen
+CREATE TRIGGER tr_invokeUpdate_reindeerDupe
+BEFORE UPDATE ON WorkReindeer
 FOR EACH ROW 
     BEGIN
-        if new.TjänstRen.RenNr = new.PensioneradRen.RenNr then
-        SIGNAL sqlstate '45000'
-        SET MESSAGE_TEXT = "Renen är pensionerad";
+        IF ((SELECT PensionedReindeer.ReindeerNr FROM PensionedReindeer) = NEW.ReindeerNr) then
+        SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is pensionized';
         END IF;
     END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE TRIGGER tr_invokeInsert_renDupe2
-BEFORE INSERT ON PensioneradRen
+CREATE TRIGGER tr_invokeInsert_reindeerDupe2
+BEFORE INSERT ON PensionedReindeer
 FOR EACH ROW 
     BEGIN
-        if new.PensioneradRen.RenNr = new.TjänstRen.RenNr then
-        SIGNAL sqlstate '45000'
-        SET MESSAGE_TEXT = "Renen är i tjänst";
+        IF ((SELECT WorkReindeer.ReindeerNr FROM WorkReindeer) = NEW.ReindeerNr) then
+            SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is Working';
         END IF;
     END$$
 DELIMITER ;
 
 
 DELIMITER $$
-CREATE TRIGGER tr_invokeUpdate_renDupe2
-BEFORE INSERT ON PensioneradRen
+CREATE TRIGGER tr_invokeUpdate_reindeerDupe2
+BEFORE INSERT ON PensionedReindeer
 FOR EACH ROW 
     BEGIN
-        if new.PensioneradRen.RenNr = new.TjänstRen.RenNr then
-        SIGNAL sqlstate '45000'
-        SET MESSAGE_TEXT = "Renen är i tjänst";
+        if ((SELECT WorkReindeer.ReindeerNr FROM WorkReindeer) = NEW.ReindeerNr) then
+        SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is a working reindeer';
         END IF;
     END$$
 DELIMITER ;
@@ -153,16 +153,18 @@ DELIMITER ;
 
 -- START OF TRIGGER FOR SlädeNamn --
 DELIMITER $$
-CREATE TRIGGER tr_invokeError_slädeNamn
-BEFORE INSERT ON Släde
+CREATE TRIGGER tr_invokeError_sleighName
+BEFORE INSERT ON Sleigh
 FOR EACH ROW
     BEGIN
-        if (new.SlädeNamn = "Brynolf") OR (new.SlädeNamn = "Rudolf") then
-        SIGNAL sqlstate = '46000'
-        SET MESSAGE_TEXT = "Släde får inte heta Brynolf eller Rudolf!"
+        if (new.Sleigh.Name = "Brynolf") OR (new.Sleigh.Name = "Rudolf") then
+        SIGNAL sqlstate '46000'
+        SET MESSAGE_TEXT = "Sleigh name cannot be Brynolf or Rudolf!";
         END IF;
     END$$
 DELIMITER ;
+
+
 
 
 
@@ -174,3 +176,26 @@ DELIMITER ;
 
 -- START OF PROCEDURE for Transfering Ren to PensioneradRen --
 
+-- START OF PROCEDURE for Selecting from Ren-table -- 
+
+
+
+
+-- END OF PROCEDURES --
+
+
+-- START OF INSERTS --
+
+INSERT INTO Reindeer(Nr, ClanName, Subspecies, Name, Stink, Region, GroupBellonging)
+VALUES (1, 'Huzars', 'pearyi', 'ReindeerMome', 'tolererbar', 'Norr',1);
+
+INSERT INTO Reindeer(Nr, ClanName, Subspecies, Name, Stink, Region, GroupBellonging)
+VALUES (2, '', 'pearyi', 'Gandalf', 'YUCK', 'Syd',5);
+
+INSERT INTO PensionedReindeer(ReindeerNr,PölsaburkNr,FactoryName, Taste)
+VALUES (2, 200, 'Scan', 'Kanel');
+
+INSERT INTO WorkReindeer(ReindeerNr, Salary)
+VALUES(1, 1000);
+
+-- END OF INSERTS --

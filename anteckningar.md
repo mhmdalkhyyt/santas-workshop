@@ -9,7 +9,7 @@
  
 ### Tasks  
     1. Triggers
-    2. Procedures
+    2. Procedures (one parameter, one without)
     3. Views
 
 ---
