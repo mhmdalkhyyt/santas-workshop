@@ -9,7 +9,7 @@ CREATE TABLE Reindeer(
     Nr int  unique not null,
     ClanName varchar(255),
     Subspecies varchar(255) not null,
-    Name varchar(255),
+    ReindeerName varchar(255),
     Stink varchar(255),
     Region varchar(255),
     GroupBellonging int not null,
@@ -54,19 +54,19 @@ CREATE TABLE PensionedReindeer(
 
 
 CREATE TABLE GroupOfReindeers(
-    Name varchar(255) unique not null,
+    ReindeerName varchar(255) unique not null,
     Capacity int,
     Quantity int not null,
     Share float,
 
-    primary key(Name)
+    primary key(ReindeerName)
 
 )ENGINE=INNODB;
 
 
 CREATE TABLE Sleigh(
     Nr int unique not null,
-    Name varchar(255),
+    SleighName varchar(255),
     Manifactor varchar(255),
     StepLenght int,
 
@@ -97,8 +97,6 @@ CREATE TABLE ExpressSleigh(
     foreign key (SleighNr) REFERENCES Sleigh(Nr)
 )ENGINE=INNODB;
 
-
-CREATE TABLE 
 
 -- END OF TABLES --
 
@@ -185,10 +183,10 @@ DELIMITER ;
 
 -- START OF INSERTS --
 
-INSERT INTO Reindeer(Nr, ClanName, Subspecies, Name, Stink, Region, GroupBellonging)
+INSERT INTO Reindeer(Nr, ClanName, Subspecies, ReindeerName, Stink, Region, GroupBellonging)
 VALUES (1, 'Huzars', 'pearyi', 'ReindeerMome', 'tolererbar', 'Norr',1);
 
-INSERT INTO Reindeer(Nr, ClanName, Subspecies, Name, Stink, Region, GroupBellonging)
+INSERT INTO Reindeer(Nr, ClanName, Subspecies, ReindeerName, Stink, Region, GroupBellonging)
 VALUES (2, '', 'pearyi', 'Gandalf', 'YUCK', 'Syd',5);
 
 INSERT INTO PensionedReindeer(ReindeerNr,PölsaburkNr,FactoryName, Taste)
@@ -198,3 +196,6 @@ INSERT INTO WorkReindeer(ReindeerNr, Salary)
 VALUES(1, 1000);
 
 -- END OF INSERTS --
+
+
+SELECT * FROM WorkReindeer;
