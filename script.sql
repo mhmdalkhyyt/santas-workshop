@@ -136,7 +136,7 @@ CREATE TABLE data_log_ReindeerChanges(
 
 
 -- START OF INDEXES --
-CREATE INDEX TrophyList ON Trophy(ReindeerNr, Occation, Title);
+CREATE INDEX TrophyList ON Trophy(Title);
 
 -- END OF TABLES --
 
@@ -342,7 +342,7 @@ SELECT * FROM ShowReindeersInGroups;
 
 SELECT * FROM RetiredReindeer;
 
-SELECT * FROM ReindeerList;
+SHOW INDEXES FROM ReindeerNames;
 
 SELECT * FROM data_log_ReindeerChanges;
 
