@@ -3,6 +3,11 @@ DROP DATABASE IF EXISTS a20muhal;
 CREATE DATABASE a20muhal;
 USE a20muhal;
 
+
+-- USERS -- 
+
+
+
 -- START OF TABLES --
 
 CREATE TABLE Reindeer(
@@ -54,14 +59,16 @@ CREATE TABLE RetiredReindeer(
 
 
 CREATE TABLE GroupOfReindeers(
-    ReindeerName varchar(255) unique not null,
+    ReindeerNr int not null,
+    ReindeerName varchar(255) not null,
     GroupNr int not NULL,
     Capacity int,
     Quantity int not null,
     Share float,
     
 
-    primary key(ReindeerName)
+    primary key(ReindeerNr),
+    foreign key(ReindeerNr) REFERENCES Reindeer(Nr)
 
 )ENGINE=INNODB;
 
@@ -226,6 +233,11 @@ FROM ReindeerNames INNER JOIN WorkReindeer
 ON ReindeerNames.RNr = WorkReindeer.ReindeerNr;
 
 
+CREATE VIEW ViewGroups AS
+SELECT ReindeerNames.RNr AS 'Nr', ReindeerNames.RName AS 'Name', GroupOfReindeers.GroupNr
+FROM ReindeerNames INNER JOIN GroupOfReindeers
+ON ReindeerNames.RNr = GroupOfReindeers.ReindeerNr;
+
 -- END OF VIEWS --
 
 
@@ -239,7 +251,7 @@ CREATE PROCEDURE Retire_a_Reindeer(RNr INTEGER, PBNr INTEGER, FName VARCHAR(255)
     BEGIN
         INSERT INTO RetiredReindeer(ReindeerNr, PölsaburkNr, FactoryName, Taste)
         VALUES(RNr, PBNr, FName, TValue); 
-        DELETE FROM WorkReindeer WHERE WorkReindeer.ReindeerNr = RNr;
+        DELETE FROM WorkReindeer WHERE ReindeerNr = RNr;
     END$$
 
 
@@ -249,7 +261,20 @@ CREATE PROCEDURE ListOfSalary()
     BEGIN
         SELECT * FROM ListSalaries;
     END$$
+
+
+-- START OF PROCEDURE for Show Reindeers in your own group --
+
+CREATE PROCEDURE WhosInMyGroup(RNr INTEGER, RName VARCHAR(255))
+    BEGIN
+        SELECT * FROM ViewGroups 
+        WHERE ViewGroups.GroupNr = (SELECT GroupNr FROM GroupOfReindeers WHERE ReindeerNr = RNr);
+    END$$
+
 DELIMITER ;
+
+
+
 
 
 -- END OF PROCEDURES --
@@ -269,7 +294,7 @@ INSERT INTO Reindeer(Nr, ClanName, Subspecies, ReindeerName, Stink, Region, Grou
 VALUES (3, 'caboti', '100Grabb', 'Flacco', 'YUCK', 'Syd', 1);
 
 INSERT INTO Reindeer(Nr, ClanName, Subspecies, ReindeerName, Stink, Region, GroupBellonging)
-VALUES (4, 'dawsoni', 'tarandus', 'Simsalabim', 'så man svimmar', 'Öst', 5);
+VALUES (4, 'dawsoni', 'tarandus', 'Simsalabim', 'så man svimmar', 'Öst', 7);
 
 -- WorkReindeer --
 
@@ -311,17 +336,20 @@ VALUES(3, 'Flacco');
 
 INSERT INTO ReindeerNames(RNr, RName)
 VALUES(4, 'Simsalabim');
-
+/*
+INSERT INTO RetiredReindeer(ReindeerNr, PölsaburkNr, FactoryName, Taste)
+        VALUES(3, 200, 'Findus', 'Mild'); 
+*/
 -- GroupOfReindeers--
 
+INSERT INTO GroupOfReindeers(ReindeerNr, ReindeerName, GroupNr, Capacity, Quantity, Share)
+VALUES(1, 'ReindeerMome', 1, 33, 1, 1.2);
 
-INSERT INTO GroupOfReindeers(ReindeerName, GroupNr, Capacity, Quantity, Share)
-VALUES('ReindeerMome', 1, 10, 1, 1.1);
+INSERT INTO GroupOfReindeers(ReindeerNr, ReindeerName, GroupNr, Capacity, Quantity, Share)
+VALUES(4,'Simsalabim', 7, 14, 2, 23.1);
 
-INSERT INTO GroupOfReindeers(ReindeerName, GroupNr, Capacity, Quantity, Share)
-VALUES('Simsalabim', 5, 14, 2, 23.1);
-
-
+INSERT INTO GroupOfReindeers(ReindeerNr, ReindeerName, GroupNr, Capacity, Quantity, Share)
+VALUES(3, 'Flacco', 1, 2, 11, 1.2);
 -- END OF INSERTS --
 
 
@@ -345,6 +373,8 @@ SELECT * FROM RetiredReindeer;
 SHOW INDEXES FROM ReindeerNames;
 
 SELECT * FROM data_log_ReindeerChanges;
+
+call WhosInMyGroup(1, 'ReindeerMome'); 
 
 -- END OF SELECT Queries --
 
