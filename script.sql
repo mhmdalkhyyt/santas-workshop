@@ -22,10 +22,10 @@ CREATE TABLE Reindeer(
 CREATE TABLE Trophy(
     ReindeerNr int unique not null,
     -- YYYY-MM-DD --
-    year DATE,
-    title varchar(255) not null,
+    Occation DATE not null,
+    Title varchar(50) not null,
 
-    primary key (ReindeerNr),
+    primary key (ReindeerNr, Occation),
     FOREIGN KEY (ReindeerNr) REFERENCES Reindeer(Nr)
 
 )ENGINE=INNODB;
@@ -41,9 +41,9 @@ CREATE TABLE WorkReindeer(
 )ENGINE=INNODB;
 
 
-CREATE TABLE PensionedReindeer(
-    ReindeerNr int,
-    PölsaburkNr int,
+CREATE TABLE RetiredReindeer(
+    ReindeerNr int unique not null,
+    PölsaburkNr int not null,
     FactoryName varchar(255),
     Taste varchar(255),
 
@@ -55,9 +55,11 @@ CREATE TABLE PensionedReindeer(
 
 CREATE TABLE GroupOfReindeers(
     ReindeerName varchar(255) unique not null,
+    GroupNr int not NULL,
     Capacity int,
     Quantity int not null,
     Share float,
+    
 
     primary key(ReindeerName)
 
@@ -69,7 +71,6 @@ CREATE TABLE Sleigh(
     SleighName varchar(255),
     Manifactor varchar(255),
     StepLenght int,
-
     Capacity int,
 
     primary key (Nr)
@@ -98,6 +99,45 @@ CREATE TABLE ExpressSleigh(
 )ENGINE=INNODB;
 
 
+-- Horizontal split of the Reindeer names --
+CREATE TABLE ReindeerNames(
+    RNr int unique not null,
+    RName varchar(255),
+
+    PRIMARY KEY (RNr), 
+    foreign key (RNr) REFERENCES Reindeer(Nr)
+ 
+
+)ENGINE=INNODB; 
+
+-- Join of the Reindeers who has won prices--
+
+CREATE TABLE ReindeerHasTrophy(
+    TReindeerNr int unique not null,
+    ReindeerName varchar(255),
+    TReindeerTitle varchar(255),
+    TrophyOccation DATE,
+
+    FOREIGN KEY(TReindeerNr) REFERENCES Reindeer(Nr),
+    FOREIGN KEY(TReindeerNr, TrophyOccation) REFERENCES Trophy(ReindeerNr, Occation),
+    PRIMARY KEY(TReindeerNr, TReindeerTitle)
+    
+
+)ENGINE=INNODB;
+
+
+CREATE TABLE data_log_ReindeerChanges(
+    id int unsigned NOT NULL auto_increment,
+    logData varchar(255) NOT NULL,
+    Username varchar(255) NOT NULL,
+    timeOccured TIMESTAMP,
+    PRIMARY KEY(id) 
+)ENGINE=INNODB;
+
+
+-- START OF INDEXES --
+CREATE INDEX TrophyList ON Trophy(ReindeerNr, Occation, Title);
+
 -- END OF TABLES --
 
 
@@ -108,45 +148,23 @@ CREATE TRIGGER tr_invokeInsert_reindeerDupe
 BEFORE INSERT ON WorkReindeer
 FOR EACH ROW 
     BEGIN
-        IF ((SELECT PensionedReindeer.ReindeerNr FROM PensionedReindeer) = NEW.ReindeerNr) THEN
+        IF ((SELECT RetiredReindeer.ReindeerNr FROM RetiredReindeer) = NEW.ReindeerNr) THEN
             SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is pensionized';
         END IF;
     END$$
-DELIMITER ;
 
-DELIMITER $$
+
 CREATE TRIGGER tr_invokeUpdate_reindeerDupe
 BEFORE UPDATE ON WorkReindeer
 FOR EACH ROW 
     BEGIN
-        IF ((SELECT PensionedReindeer.ReindeerNr FROM PensionedReindeer) = NEW.ReindeerNr) THEN
+        IF ((SELECT RetiredReindeer.ReindeerNr FROM RetiredReindeer) = NEW.ReindeerNr) THEN
             SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is pensionized';
         END IF;
     END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE TRIGGER tr_invokeInsert_reindeerDupe2
-BEFORE INSERT ON PensionedReindeer
-FOR EACH ROW 
-    BEGIN
-        IF ((SELECT WorkReindeer.ReindeerNr FROM WorkReindeer) = NEW.ReindeerNr) THEN
-            SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is Working';
-        END IF;
-    END$$
-DELIMITER ;
-
-
-DELIMITER $$
-CREATE TRIGGER tr_invokeUpdate_reindeerDupe2
-BEFORE INSERT ON PensionedReindeer
-FOR EACH ROW 
-    BEGIN
-        if ((SELECT WorkReindeer.ReindeerNr FROM WorkReindeer) = NEW.ReindeerNr) THEN
-            SIGNAL sqlstate '45000' SET MESSAGE_TEXT = 'Reindeer is a working reindeer';
-        END IF;
-    END$$
-DELIMITER ;
 
 
 -- START OF TRIGGER FOR SlädeNamn --
@@ -155,47 +173,179 @@ CREATE TRIGGER tr_invokeError_sleighName
 BEFORE INSERT ON Sleigh
 FOR EACH ROW
     BEGIN
-        if (new.Sleigh.Name = "Brynolf") OR (new.Sleigh.Name = "Rudolf") THEN
+        IF (new.SleighName = "Brynolf") OR (new.SleighName = "Rudolf") THEN
             SIGNAL sqlstate '46000' SET MESSAGE_TEXT = 'Sleigh name cannot be Brynolf or Rudolf!';
         END IF;
     END$$
+
+
+-- TRIGGERS For VG -- 
+
+CREATE TRIGGER tr_invokeInsert_reindeerHasTrophyDupe
+BEFORE INSERT ON ReindeerHasTrophy
+FOR EACH ROW
+    BEGIN
+        IF EXISTS (SELECT TReindeerTitle FROM ReindeerHasTrophy WHERE TReindeerTitle = NEW.TReindeerTitle 
+        AND TrophyOccation = NEW.TrophyOccation) THEN
+        SIGNAL sqlstate '47000'
+        SET MESSAGE_TEXT = 'That title has already been distributed that day!';
+        END IF;
+    END $$
+
+
+CREATE TRIGGER tr_invokeLogging_reindeerStatusChange
+AFTER DELETE ON WorkReindeer
+FOR EACH ROW
+    BEGIN
+        INSERT INTO data_log_ReindeerChanges(logData, Username, timeOccured)
+        VALUES(CONCAT(('Deleted: ', ReindeerNr, @logData)), 'Babadook', CURRENT_TIMESTAMP());
+    END$$
+
 DELIMITER ;
 
-
-
-
-
 -- END OF TRIGGERS --
+
+-- START OF VIEWS --
+
+
+-- START OF VIEW for showing Reindeers that are in a group --
+
+CREATE VIEW ShowReindeersInGroups AS
+SELECT Reindeer.Nr AS 'ReindeerNr', Reindeer.ReindeerName, GroupOfReindeers.GroupNr
+FROM Reindeer INNER JOIN GroupOfReindeers
+ON Reindeer.GroupBellonging = GroupOfReindeers.GroupNr 
+ORDER BY GroupOfReindeers.GroupNr ASC;
+
+
+-- START OF VIEW for listing WorkReindeers and their salaries --
+
+
+CREATE VIEW ListSalaries AS
+SELECT  ReindeerNames.RNr AS 'Nr', ReindeerNames.RName AS 'Name', WorkReindeer.Salary
+FROM ReindeerNames INNER JOIN WorkReindeer
+ON ReindeerNames.RNr = WorkReindeer.ReindeerNr;
+
+
+-- END OF VIEWS --
 
 
 -- START OF Procedures --
 
 
--- START OF PROCEDURE for Transfering Ren to PensioneradRen --
+-- START OF PROCEDURE for Transfering WorkReindeer to PensionedReindeer --
 
--- START OF PROCEDURE for Selecting from Ren-table -- 
+DELIMITER $$
+CREATE PROCEDURE Retire_a_Reindeer(RNr INTEGER, PBNr INTEGER, FName VARCHAR(255), TValue VARCHAR(255))
+    BEGIN
+        INSERT INTO RetiredReindeer(ReindeerNr, PölsaburkNr, FactoryName, Taste)
+        VALUES(RNr, PBNr, FName, TValue); 
+        DELETE FROM WorkReindeer WHERE WorkReindeer.ReindeerNr = RNr;
+    END$$
 
 
+-- START OF PROCEDURE for Show salary of the WorkingReindeers  --
+
+CREATE PROCEDURE ListOfSalary()
+    BEGIN
+        SELECT * FROM ListSalaries;
+    END$$
+DELIMITER ;
 
 
 -- END OF PROCEDURES --
 
 
+
 -- START OF INSERTS --
 
+-- Reindeers --
 INSERT INTO Reindeer(Nr, ClanName, Subspecies, ReindeerName, Stink, Region, GroupBellonging)
 VALUES (1, 'Huzars', 'pearyi', 'ReindeerMome', 'tolererbar', 'Norr',1);
 
 INSERT INTO Reindeer(Nr, ClanName, Subspecies, ReindeerName, Stink, Region, GroupBellonging)
-VALUES (2, '', 'pearyi', 'Gandalf', 'YUCK', 'Syd',5);
+VALUES (2, 'buskensis', 'pearyi', 'Gandalf', 'YUCK', 'Syd',5);
 
-INSERT INTO PensionedReindeer(ReindeerNr,PölsaburkNr,FactoryName, Taste)
-VALUES (2, 200, 'Scan', 'Kanel');
+INSERT INTO Reindeer(Nr, ClanName, Subspecies, ReindeerName, Stink, Region, GroupBellonging)
+VALUES (3, 'caboti', '100Grabb', 'Flacco', 'YUCK', 'Syd', 1);
+
+INSERT INTO Reindeer(Nr, ClanName, Subspecies, ReindeerName, Stink, Region, GroupBellonging)
+VALUES (4, 'dawsoni', 'tarandus', 'Simsalabim', 'så man svimmar', 'Öst', 5);
+
+-- WorkReindeer --
+
 
 INSERT INTO WorkReindeer(ReindeerNr, Salary)
 VALUES(1, 1000);
 
+INSERT INTO WorkReindeer(ReindeerNr, Salary)
+VALUES(2, 2002);
+
+INSERT INTO WorkReindeer(ReindeerNr, Salary)
+VALUES(3, 200);
+
+
+-- RetiredReindeer -- 
+INSERT INTO RetiredReindeer(ReindeerNr, PölsaburkNr, FactoryName, Taste)
+VALUES (2, 100, 'Scan', 'Kanel');
+
+
+-- TEST IF TRIGGERS FIRE --
+/*
+INSERT INTO WorkReindeer(ReindeerNr, Salary)
+VALUES (2, 3000);
+
+INSERT INTO Sleigh(Nr, SleighName, Manifactor, StepLenght, Capacity)
+VALUES (1, 'Rudolf', 'Mercedes', 2, 500);
+*/
+
+-- ReindeerNames --
+
+INSERT INTO ReindeerNames(RNr, RName)
+VALUES(1, 'ReindeerMome');
+
+INSERT INTO ReindeerNames(RNr, RName)
+VALUES(2, 'Gandalf');
+
+INSERT INTO ReindeerNames(RNr, RName)
+VALUES(3, 'Flacco');
+
+INSERT INTO ReindeerNames(RNr, RName)
+VALUES(4, 'Simsalabim');
+
+-- GroupOfReindeers--
+
+
+INSERT INTO GroupOfReindeers(ReindeerName, GroupNr, Capacity, Quantity, Share)
+VALUES('ReindeerMome', 1, 10, 1, 1.1);
+
+INSERT INTO GroupOfReindeers(ReindeerName, GroupNr, Capacity, Quantity, Share)
+VALUES('Simsalabim', 5, 14, 2, 23.1);
+
+
 -- END OF INSERTS --
 
 
-SELECT * FROM WorkReindeer;
+
+
+-- START OF Procedure Calls --
+/*
+call Retire_a_Reindeer(3, 200, 'Findus', 'Mild');
+*/
+call ListOfSalary();
+
+
+-- START OF SELECT Queries --
+
+SELECT * FROM ReindeerNames;
+
+SELECT * FROM ShowReindeersInGroups;
+
+SELECT * FROM RetiredReindeer;
+
+SELECT * FROM ReindeerList;
+
+SELECT * FROM data_log_ReindeerChanges;
+
+-- END OF SELECT Queries --
+
+-- END OF Procedure Calls --

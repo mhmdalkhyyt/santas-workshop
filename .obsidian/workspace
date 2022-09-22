@@ -1,0 +1,145 @@
+{
+  "main": {
+    "id": "5b33d8834d91e32f",
+    "type": "split",
+    "children": [
+      {
+        "id": "7f8af8735e87dcda",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "anteckningar.md",
+            "mode": "source",
+            "source": false
+          }
+        }
+      },
+      {
+        "id": "1eb957d76df59745",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "anteckningar.md",
+            "mode": "source",
+            "source": false
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "c354aa8c02d1ec95",
+    "type": "split",
+    "children": [
+      {
+        "id": "b7c54b4f2bed6545",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "609bc60ae8130a8c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "1aae8676df9da9ec",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "b9332e0ff1de51b3",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "54e209e5b94951de",
+    "type": "split",
+    "children": [
+      {
+        "id": "1d021a45c9044cba",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7db7e4b8da1f3c4e",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "anteckningar.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "b23a075dbee019fc",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "anteckningar.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "d3fb0a58828c7858",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "bc10febbbb826b75",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "anteckningar.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "1eb957d76df59745",
+  "lastOpenFiles": []
+}
