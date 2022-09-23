@@ -8,7 +8,7 @@ CREATE USER 'Santa'@'localhost' IDENTIFIED BY 'Northpole';
 GRANT ALL PRIVILIGES ON a20muhal.* TO 'Santa'@'localhost';
 
 -- Reindeer User -- 
+CREATE USER 'Reindeer'@'localhost' IDENTIFIED BY 'Northpole';
 
-GRANT SELECT ON a20muhal.VIEW TO 'a20muhalSanta'@'localhost';
+GRANT EXECUTE ON a20muhal.WhosInMyGroup TO 'a20muhalReindeer'@'localhost';
 
-GRANT SELECT ON a20muhal.PROCEDURE TO 'a20muhalSanta'@'localhost';
